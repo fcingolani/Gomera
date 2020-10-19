@@ -1,0 +1,10 @@
+{
+  "name": "gomera",
+  "version": "0.1.0",
+  "description": "It won't hurt much, my little birdie.",
+  "author": "Federico Cingolani",
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "twitter": "^1.7.1"
+  }
+}
