@@ -1,4 +1,5 @@
 node_modules
 tweet.js
 deleted-tweets.json
+processed-tweets.json
 .env

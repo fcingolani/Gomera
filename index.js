@@ -6,7 +6,7 @@ require('dotenv').config();
 const config = {
     MAX_TWEETS: 10000,
     FROM_DATE: new Date('1900-01-01'),
-    TO_DATE: new Date('2014-01-01'),
+    TO_DATE: new Date('2016-01-01'),
 };
 
 (async function () {
@@ -15,10 +15,10 @@ const config = {
     archiveText = archiveText.replace(/^window.YTD.tweet.part0 = /g, '');
     let archiveData = JSON.parse(archiveText);
 
-    let deletedData = [];
+    let processedData = [];
     try {
-        let deletedText = await fs.readFile('./deleted-tweets.json', 'utf8');
-        deletedData = JSON.parse(deletedText);
+        let processedText = await fs.readFile('./processed-tweets.json', 'utf8');
+        processedData = JSON.parse(processedText);
     } catch (e) { }
 
     let client = new Twitter({
@@ -28,28 +28,39 @@ const config = {
         access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
     });
 
-    let deletedCount = 0;
+    let processedCount = 0;
 
     for (let { tweet } of archiveData) {
 
-        if (!deletedData.includes(tweet.id)) {
+        if (!processedData.includes(tweet.id)) {
 
             let tweetCreationDate = new Date(tweet.created_at);
 
             if (tweetCreationDate >= config.FROM_DATE && tweetCreationDate <= config.TO_DATE) {
 
-                await client.post(`statuses/destroy/${tweet.id}`);
+                let liveTweet = await client.get(`statuses/show/${tweet.id}`);
 
-                console.log(`Deleted ${tweet.id} - ${tweet.created_at} - ${tweet.full_text}`);
+                if (liveTweet.favorited || liveTweet.retweeted) {
 
-                deletedData.push(tweet.id);
-                await fs.writeFile('./deleted-tweets.json', JSON.stringify(deletedData));
+                    console.log(`Skipped ${tweet.id} - ${tweet.created_at}\n${tweet.full_text}\n\n`);
 
-                deletedCount++;
+                } else {
 
-                if (deletedCount >= config.MAX_TWEETS) {
+                    await client.post(`statuses/destroy/${tweet.id}`);
+                    console.log(`Deleted ${tweet.id} - ${tweet.created_at}\n${tweet.full_text}\n\n`);
+
+                }
+
+                processedData.push(tweet.id);
+                await fs.writeFile('./processed-tweets.json', JSON.stringify(processedData));
+
+                processedCount++;
+
+                if (processedCount >= config.MAX_TWEETS) {
                     break;
                 }
+
+
 
             }
 
@@ -57,7 +68,7 @@ const config = {
 
     }
 
-    console.log(`Deleted ${deletedCount} tweets`);
+    console.log(`Processed ${processedCount} tweets`);
 
 })();
 

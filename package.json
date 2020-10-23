@@ -1,7 +1,7 @@
 {
   "name": "gomera",
   "version": "0.1.0",
-  "description": "It won't hurt much, my little birdie.",
+  "description": "Deletes your tweets.",
   "author": "Federico Cingolani",
   "dependencies": {
     "dotenv": "^8.2.0",
